@@ -403,13 +403,13 @@ function createBot() {
 
   // Login
   if (message.includes('login')) {
-    bot.chat('/login Perzuu');
+    if (process.env.BOT_AUTH_PASSWORD) bot.chat('/login ' + process.env.BOT_AUTH_PASSWORD);
     console.log('[Auth] Login detected');
   }
 
   // Register
   if (message.includes('register')) {
-    bot.chat('/register Perzuu Perzuu');
+    if (process.env.BOT_AUTH_PASSWORD) bot.chat('/register ' + process.env.BOT_AUTH_PASSWORD + ' ' + process.env.BOT_AUTH_PASSWORD);
     console.log('[Auth] Register detected');
   }
 
@@ -432,7 +432,7 @@ const mcData = require('minecraft-data')(config.server.version);
 const defaultMove = new Movements(bot, mcData);
 
 initializeModules(bot, mcData, defaultMove);
-setupLeaveRejoin(bot, createBot);
+// Timed leave/rejoin intentionally disabled.
 
 setTimeout(() => {
   if (bot && botState.connected) {
@@ -523,7 +523,7 @@ bot.on('messagestr', (msg) => {
 
   if (message.includes('/register') || message.includes('register')) {
     authDone = true;
-    bot.chat('/register Perzuu Perzuu');
+    if (process.env.BOT_AUTH_PASSWORD) bot.chat('/register ' + process.env.BOT_AUTH_PASSWORD + ' ' + process.env.BOT_AUTH_PASSWORD);
     console.log('[Auth] Register sent');
     return;
   }
@@ -585,7 +585,8 @@ bot.on('messagestr', (msg) => {
 }
 
 // Periodic Rejoin Module
-const setupLeaveRejoin = require('./leaveRejoin');
+// Legacy timed leave/rejoin disabled: this bot should stay connected.
+// const setupLeaveRejoin = require('./leaveRejoin');
 
 // Periodic Rejoin Module - Handled by leaveRejoin.js now
 function periodicRejoin(bot) {
