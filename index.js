@@ -396,33 +396,18 @@ function createBot() {
 
   console.log(`[Bot] [+] Successfully spawned on server!`);
 
-  // 🔐 FORCE LOGIN SYSTEM (Perzaan Edition)
-
-      bot.on('messagestr', (msg) => {
-  const message = msg.toLowerCase();
-
-  // Login
-  if (message.includes('login')) {
-    if (process.env.BOT_AUTH_PASSWORD) bot.chat('/login ' + process.env.BOT_AUTH_PASSWORD);
-    console.log('[Auth] Login detected');
-  }
-
-  // Register
-  if (message.includes('register')) {
-    if (process.env.BOT_AUTH_PASSWORD) bot.chat('/register ' + process.env.BOT_AUTH_PASSWORD + ' ' + process.env.BOT_AUTH_PASSWORD);
-    console.log('[Auth] Register detected');
-  }
-
-  // Creative mode success
-  if (
-    message.includes('commands.gamemode.success.self') ||
-    message.includes('set own game mode to creative mode')
-  ) {
-    console.log('[INFO] Bot is now in Creative Mode.');
-
-    bot.chat('/gamerule sendCommandFeedback false');
-  }
-});
+  // Handle informational game messages only. Authentication is handled
+  // once in initializeModules() to avoid duplicate /login and /register commands.
+  bot.on('messagestr', (msg) => {
+    const message = msg.toLowerCase();
+    if (
+      message.includes('commands.gamemode.success.self') ||
+      message.includes('set own game mode to creative mode')
+    ) {
+      console.log('[INFO] Bot is now in Creative Mode.');
+      bot.chat('/gamerule sendCommandFeedback false');
+    }
+  });
 
       if (config.discord && config.discord.events.connect) {
   sendDiscordWebhook(`[+] **Connected** to \`${config.server.ip}\``, 0x4ade80);
@@ -515,26 +500,26 @@ function initializeModules(bot, mcData, defaultMove) {
 
   // ---------- AUTO AUTH ----------
   let authDone = false;
+  const autoAuthEnabled = Boolean(config.utils['auto-auth']?.enabled);
+  const authPassword = process.env.BOT_AUTH_PASSWORD;
 
-bot.on('messagestr', (msg) => {
-  const message = msg.toLowerCase();
+  bot.on('messagestr', (msg) => {
+    if (!autoAuthEnabled || !authPassword || authDone) return;
+    const message = msg.toLowerCase();
 
-  if (authDone) return;
+    if (message.includes('register')) {
+      authDone = true;
+      bot.chat('/register ' + authPassword + ' ' + authPassword);
+      console.log('[Auth] Register command sent');
+      return;
+    }
 
-  if (message.includes('/register') || message.includes('register')) {
-    authDone = true;
-    if (process.env.BOT_AUTH_PASSWORD) bot.chat('/register ' + process.env.BOT_AUTH_PASSWORD + ' ' + process.env.BOT_AUTH_PASSWORD);
-    console.log('[Auth] Register sent');
-    return;
-  }
-
-  if (message.includes('/login') || message.includes('login')) {
-    authDone = true;
-    if (process.env.BOT_AUTH_PASSWORD) bot.chat('/login ' + process.env.BOT_AUTH_PASSWORD);
-    console.log('[Auth] Login sent');
-    return;
-  }
-});
+    if (message.includes('login')) {
+      authDone = true;
+      bot.chat('/login ' + authPassword);
+      console.log('[Auth] Login command sent');
+    }
+  });
 
   // ---------- MOVE TO POSITION ----------
   if (config.position.enabled) {
