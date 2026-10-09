@@ -530,7 +530,7 @@ bot.on('messagestr', (msg) => {
 
   if (message.includes('/login') || message.includes('login')) {
     authDone = true;
-    bot.chat('/login Perzuu');
+    if (process.env.BOT_AUTH_PASSWORD) bot.chat('/login ' + process.env.BOT_AUTH_PASSWORD);
     console.log('[Auth] Login sent');
     return;
   }
