@@ -596,6 +596,20 @@ function startCircleWalk(bot, defaultMove) {
     lastPathTime = now;
 
     try {
+      // Reach the configured AFK position before circle-walking.
+      // Otherwise this interval overwrites the initial position goal almost immediately.
+      if (config.position.enabled) {
+        const p = bot.entity.position;
+        const dx = p.x - config.position.x;
+        const dy = p.y - config.position.y;
+        const dz = p.z - config.position.z;
+        if (Math.sqrt(dx * dx + dy * dy + dz * dz) > 2) {
+          bot.pathfinder.setMovements(defaultMove);
+          bot.pathfinder.setGoal(new GoalBlock(config.position.x, config.position.y, config.position.z));
+          return;
+        }
+      }
+
       const x = bot.entity.position.x + Math.cos(angle) * radius;
       const z = bot.entity.position.z + Math.sin(angle) * radius;
       bot.pathfinder.setMovements(defaultMove);
