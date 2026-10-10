@@ -11,10 +11,10 @@
     "version": "26.2"
   },
   "position": {
-    "enabled": false,
-    "x": 0,
-    "y": 100,
-    "z": 0
+    "enabled": true,
+    "x": 124,
+    "y": 67,
+    "z": -584
   },
   "utils": {
     "auto-auth": {
