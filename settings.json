@@ -1,7 +1,7 @@
 {
-  "name": "AFK Bot",
+  "name": "AFK worker Bot",
   "bot-account": {
-    "username": "PerzaanLive",
+    "username": "AFK_worker_Bot",
     "password": "",
     "type": "offline"
   },
