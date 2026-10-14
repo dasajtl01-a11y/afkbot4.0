@@ -396,19 +396,7 @@ function createBot() {
 
   console.log(`[Bot] [+] Successfully spawned on server!`);
 
-  // Handle informational game messages only. Authentication is handled
-  // once in initializeModules() to avoid duplicate /login and /register commands.
-  bot.on('messagestr', (msg) => {
-    const message = msg.toLowerCase();
-    if (
-      message.includes('commands.gamemode.success.self') ||
-      message.includes('set own game mode to creative mode')
-    ) {
-      console.log('[INFO] Bot is now in Creative Mode.');
-      bot.chat('/gamerule sendCommandFeedback false');
-    }
-  });
-
+  // No automatic game-mode or gamerule commands are sent by the bot.
       if (config.discord && config.discord.events.connect) {
   sendDiscordWebhook(`[+] **Connected** to \`${config.server.ip}\``, 0x4ade80);
 }
@@ -416,21 +404,12 @@ function createBot() {
 const mcData = require('minecraft-data')(config.server.version);
 const defaultMove = new Movements(bot, mcData);
 
+// Safety: pathfinding must never dig or break blocks.
+defaultMove.canDig = false;
+
 initializeModules(bot, mcData, defaultMove);
 // Timed leave/rejoin intentionally disabled.
-
-setTimeout(() => {
-  if (bot && botState.connected) {
-    bot.chat('/gamerule sendCommandFeedback false');
-  }
-}, 3000);
-
-setTimeout(() => {
-  if (bot && botState.connected) {
-    bot.chat('/gamemode creative');
-    console.log('[INFO] Attempted to set creative mode (requires OP)');
-  }
-}, 3000);
+// The bot does not issue gamemode or gamerule commands.
 
 });
 
@@ -792,13 +771,22 @@ rl.on('line', (line) => {
   if (trimmed.startsWith('say ')) {
     bot.chat(trimmed.slice(4));
   } else if (trimmed.startsWith('cmd ')) {
-    bot.chat('/' + trimmed.slice(4));
+    const command = trimmed.slice(4).trim();
+    if (/^(\/?)(gamemode|defaultgamemode)\b/i.test(command)) {
+      console.log('[Safety] Game-mode commands are disabled for this bot.');
+      return;
+    }
+    bot.chat('/' + command);
   } else if (trimmed === 'status') {
     console.log(`Connected: ${botState.connected}, Uptime: ${formatUptime(Math.floor((Date.now() - botState.startTime) / 1000))}`);
   } else if (trimmed === 'reconnect') {
     console.log('[Console] Manual reconnect requested');
     bot.end();
   } else {
+    if (/^\/?(gamemode|defaultgamemode)\b/i.test(trimmed)) {
+      console.log('[Safety] Game-mode commands are disabled for this bot.');
+      return;
+    }
     bot.chat(trimmed);
   }
 });
